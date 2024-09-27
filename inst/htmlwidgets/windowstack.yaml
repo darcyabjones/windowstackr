@@ -1,0 +1,8 @@
+dependencies:
+ - name: gridstack
+   version: 10.3.1
+   src: "htmlwidgets/node_modules/gridstack/dist"
+   script: "gridstack-all.js"
+   stylesheet:
+    - "gridstack.min.css"
+    - "gridstack-extra.min.css"
