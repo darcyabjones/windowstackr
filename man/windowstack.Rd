@@ -2,14 +2,19 @@
 % Please edit documentation in R/windowstack.R
 \name{windowstack}
 \alias{windowstack}
-\title{\if{html}{\out{
-<Add Title>
-}}}
+\title{windowstack}
 \usage{
-windowstack(message, width = NULL, height = NULL, elementId = NULL)
+windowstack(
+  ...,
+  width = NULL,
+  height = NULL,
+  id = NULL,
+  item_defaults = list()
+)
 }
 \description{
 \if{html}{\out{
 <Add Description>
+https://github.com/gridstack/gridstack.js/blob/master/src/types.ts#L116
 }}
 }

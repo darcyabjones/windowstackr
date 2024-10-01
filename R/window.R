@@ -1,4 +1,4 @@
-#' <Add Title>
+#' window
 #'
 #' <Add Description>
 #'
@@ -46,6 +46,10 @@ window <- function(
 }
 
 
+#' window_toolbar
+#'
+#' <Add Description>
+#'
 #' @export
 window_toolbar <- function(
   ...,
@@ -71,6 +75,10 @@ window_toolbar <- function(
 }
 
 
+#' window_body
+#'
+#' <Add Description>
+#'
 #' @export
 window_body <- function(
   ...,
@@ -109,6 +117,11 @@ window_body <- function(
   return(tag)
 }
 
+
+#' window_footer
+#'
+#' <Add Description>
+#'
 #' @export
 window_footer <- function(
   ...,
