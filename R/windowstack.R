@@ -270,7 +270,7 @@ gridstack_defaults <- function() {
     marginUnit = 'px',
     maxRow = 0,
     minRow = 2,
-    placeholderClass = 'grid-stack-placeholder',
+    placeholderClass = 'window-stack-placeholder',
     placeholderText = '',
     removableOptions = list(accept = 'grid-stack-item', decline = 'grid-stack-non-removable'),
     resizable = list(handles = "w,sw,s,se,e"),
@@ -289,3 +289,4 @@ gridstack_widget_defaults <- function() {
     h = 2
   )
 }
+

@@ -1,3 +1,8 @@
+function close_alert() {
+  alert("clicked")
+}
+
+
 HTMLWidgets.widget({
 
   name: 'windowstack',
@@ -23,27 +28,27 @@ HTMLWidgets.widget({
           window.dispatchEvent(new Event("resize"));
         });
 
-        if (HTMLWidgets.shinyMode) {
-          var $all = $(el);
-          Shiny.bindAll($all);
-        }
-        grid.on("added", function(event, items) {
-          if (HTMLWidgets.shinyMode) {
-            items.forEach(function(item) {
-              var $item = $(item);
-              Shiny.bindAll($item);
-            });
-          }
-        });
+        //If (HTMLWidgets.shinyMode) {
+        //  var $all = $(el);
+        //  Shiny.bindAll($all);
+        //}
+        //Grid.on("added", function(event, items) {
+        //  if (HTMLWidgets.shinyMode) {
+        //    items.forEach(function(item) {
+        //      var $item = $(item);
+        //      Shiny.bindAll($item);
+        //    });
+        //  }
+        //});
 
-        if (HTMLWidgets.shinyMode) {
-          var serializedFull = grid.save(true, true);
-          Shiny.setInputValue(el.id + "_layout", serializedFull);
-          grid.on("added removed change", function(event, items) {
-            serializedFull = grid.save(true, true);
-            Shiny.setInputValue(el.id + "_layout", serializedFull);
-          });
-        }
+        //If (HTMLWidgets.shinyMode) {
+        //  var serializedFull = grid.save(true, true);
+        //  Shiny.setInputValue(el.id + "_layout", serializedFull);
+        //  grid.on("added removed change", function(event, items) {
+        //    serializedFull = grid.save(true, true);
+        //    Shiny.setInputValue(el.id + "_layout", serializedFull);
+        //  });
+        //}
 
       },
 
