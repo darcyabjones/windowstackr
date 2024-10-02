@@ -84,17 +84,21 @@ ui <- bslib::page_fluid(
     ")
   ),
   htmltools::tags$h2("GridStack example"),
-  windowstackOutput("wind")
-)
+  windowstackOutput("wind"),
+  fontawesome::fa_html_dependency()
+) # Needed for icons, but can remove if fix js interface
 
 server <- function(input, output, session) {
   bslib::bs_theme()
   output$wind <- renderWindowstack(windowstack(
-    window(window_toolbar(), window_body("test"), class = "grid-stack-item")
+    window(window_toolbar(), window_body(shiny::textOutput("test_div")), class = "grid-stack-item")
   ))
 
-
+  output$test_div <- shiny::reactive({
+    renderText("HEY")
+  })
 }
+
 
 if (interactive())
   shinyApp(ui, server)

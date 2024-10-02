@@ -21,6 +21,7 @@ HTMLWidgets.widget({
 
         el.classList.add("grid-stack");
         el.classList.add("grid-stack-edit");
+        el.id = x.id;
         el.innerHTML = x.html;
 
         grid = GridStack.init(x.options, el);
@@ -28,28 +29,27 @@ HTMLWidgets.widget({
           window.dispatchEvent(new Event("resize"));
         });
 
-        //If (HTMLWidgets.shinyMode) {
-        //  var $all = $(el);
-        //  Shiny.bindAll($all);
-        //}
-        //Grid.on("added", function(event, items) {
-        //  if (HTMLWidgets.shinyMode) {
-        //    items.forEach(function(item) {
-        //      var $item = $(item);
-        //      Shiny.bindAll($item);
-        //    });
-        //  }
-        //});
+        if (HTMLWidgets.shinyMode) {
+          var $all = $(el);
+          Shiny.bindAll($all);
+        }
+        grid.on("added", function(event, items) {
+          if (HTMLWidgets.shinyMode) {
+            items.forEach(function(item) {
+              var $item = $(item);
+              Shiny.bindAll($item);
+            });
+          }
+        });
 
-        //If (HTMLWidgets.shinyMode) {
-        //  var serializedFull = grid.save(true, true);
-        //  Shiny.setInputValue(el.id + "_layout", serializedFull);
-        //  grid.on("added removed change", function(event, items) {
-        //    serializedFull = grid.save(true, true);
-        //    Shiny.setInputValue(el.id + "_layout", serializedFull);
-        //  });
-        //}
-
+        if (HTMLWidgets.shinyMode) {
+          var serializedFull = grid.save(true, true);
+          Shiny.setInputValue(el.id, serializedFull);
+          grid.on("added removed change", function(event, items) {
+            serializedFull = grid.save(true, true);
+            Shiny.setInputValue(el.id, serializedFull);
+          });
+        }
       },
 
       getWidget: function() {
@@ -63,7 +63,6 @@ HTMLWidgets.widget({
       addWidget: function(w) {
         return grid.addWidget(w);
       }
-
     };
   }
 });

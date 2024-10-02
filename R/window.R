@@ -130,6 +130,7 @@ window_toolbar <- function(
     close_button
   ))
   tag <- htmltools::tagAppendAttributes(tag, class = class)
+  htmltools::attachDependencies(tag, fontawesome::fa_html_dependency(), append = TRUE)
   return(tag)
 }
 

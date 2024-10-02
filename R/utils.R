@@ -1,5 +1,5 @@
 drop_nulls <- function(x) {
-  x[!vapply(x, FUN.VALUE = TRUE, FUN = is.null)]
+  x[!vapply(unclass(x), FUN.VALUE = TRUE, FUN = is.null)]
 }
 
 drop_empty_sublists <- function(li, v) {
