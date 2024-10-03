@@ -1,35 +1,3 @@
-validate_option <- function(option, value, fns, ..., ignore_null = TRUE, parent = NULL, call = rlang::caller_env()) {
-  if (ignore_null && is.null(value)) {
-    return(NULL)
-  }
-  errors <- list()
-
-  if ((length(fns) == 1) && inherits(fns, "function")) {
-    fns <- list(fns)
-  }
-  for (fn in fns) {
-    fn_err <- fn(value)
-    errors[[length(errors) + 1]] <- fn_err
-  }
-
-  if (length(errors) == 0) {
-    return(NULL)
-  }
-
-  errors <- unlist(lapply(errors, FUN = function(x) {
-    if (not_null(names(x)) && (names(x)[1] == "")) {
-      names(x)[1] <- "!"
-    }
-    cli::format_bullets_raw(x)
-  }))
-
-  names(errors) <- rep("  ", length(errors))
-  return(c(
-    "!" = cli::format_inline("Invalid gridstack option {.var {option}} provided."),
-    errors
-  ))
-}
-
 new_gridstack_options <- function(
     ...,
     animate = NULL,
@@ -110,7 +78,7 @@ gridstack_options <- function(
   draggable = gridstack_draggable_options(),
   handleClass = NULL,
   itemClass = 'grid-stack-item',
-  margin = "5px 10px 5px 5px",
+  margin = "5px 5px 5px 5px",
   marginUnit = 'px',
   row = NULL,
   maxRow = 0,
@@ -420,7 +388,6 @@ gridstack_removable_options <- function(
   validate_gridstack_removable_options(opt)
   opt
 }
-
 
 
 validate_gridstack_removable_options <- function(opt, call = NULL) {
