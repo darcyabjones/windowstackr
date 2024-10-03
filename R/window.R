@@ -72,7 +72,7 @@ window_close_button <- function(id) {
     id = id,
     class = "card-header-button",
     type = "button",
-    onClick = "close_alert()",
+    onClick = sprintf("gridstackCloseWindow('#%s')", id),
     `aria-label` = "Close",
     shiny::icon("xmark", class = "fa-solid", lib = "font-awesome")
   )

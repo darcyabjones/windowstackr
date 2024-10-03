@@ -19,6 +19,8 @@ windowstack <- function(
   args <- rlang::list2(...)
   argnames <- rlang::names2(args)
   options <- args[nzchar(argnames)]
+  options <- gridstack_defaults()
+
 
   children <- args[!nzchar(argnames)]
   children <- htmltools::renderTags(children)
@@ -37,6 +39,7 @@ windowstack <- function(
   # forward options using x
   x = list(
     html = children$html,
+    head = children$head,
     id = id,
     options = as.list(gs_options),
     item_defaults = as.list(gs_item_options)
@@ -49,6 +52,7 @@ windowstack <- function(
     width = width,
     height = height,
     package = 'windowstackr',
+    dependencies = children$dependencies,
     sizingPolicy = htmlwidgets::sizingPolicy(
       defaultWidth = "100%",
       viewer.defaultHeight = "100%",
@@ -92,5 +96,21 @@ renderWindowstack <- function(expr, env = parent.frame(), quoted = FALSE) {
 }
 
 
+windowstack_proxy <- function(id, session = shiny::getDefaultReactiveDomain()){
+  proxy <- list(id = id, session = session)
+  class(proxy) <- "windowstack_proxy"
+  return(proxy)
+}
 
-
+windowstack_make_window <- function(proxy, window) {
+  gs_options <- gridstack_widget_defaults()
+  shiny::insertUI(
+    paste0("#", proxy$id),
+    ui = window,
+    where = "beforeEnd",
+    session = proxy$session,
+    immediate = TRUE
+  )
+  message <- list(id = proxy$id, window_id = window$attribs$id)
+  proxy$session$sendCustomMessage("gridstack_make_window", message)
+}
