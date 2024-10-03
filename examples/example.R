@@ -91,25 +91,19 @@ ui <- bslib::page_fluid(
 server <- function(input, output, session) {
   bslib::bs_theme()
   output$wind <- renderWindowstack(windowstack(
-    window(window_toolbar(), window_body("test"), class = "grid-stack-item"),
     id = "wind"
   ))
-
-
   shiny::observeEvent(input[["create_window"]], {
     wnd <- window(
       window_toolbar(),
-      window_body("test"),
-      `gs-h` = 2,
-      `gs-w` = 6,
-      class = "grid-stack-item"
+      window_body("test")
     )
     proxy <- windowstack_proxy("wind", session) |>
-      windowstack_make_window(wnd)
+      add_gs_window(wnd)
   })
 }
 
 
 if (interactive()) {
-  shinyApp(ui, server)
+  shiny::shinyApp(ui, server)
 }
