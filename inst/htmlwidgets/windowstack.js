@@ -32,7 +32,6 @@ HTMLWidgets.widget({
           document.head.innerHTML += x.head;
         }
 
-        console.log(x.options);
         grid = GridStack.init(x.options);
         grid.on("resizestop", function(event, el) {
           window.dispatchEvent(new Event("resize"));

@@ -93,6 +93,15 @@ server <- function(input, output, session) {
   output$wind <- renderWindowstack(windowstack(
     id = "wind"
   ))
+
+  wnd <- window(
+    window_toolbar(),
+    window_body("Initial body")
+  )
+
+  proxy <- windowstack_proxy("wind", session) |>
+    add_window(wnd)
+
   shiny::observeEvent(input[["create_window"]], {
     wnd <- window(
       window_toolbar(),
