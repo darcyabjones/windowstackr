@@ -3,13 +3,13 @@ devtools::load_all()
 ui <- bslib::page_fluid(
   shiny::tags$head(
     shiny::tags$style("
-      .card-handle:hover {
+      .window-stack-handle:hover {
         cursor: move; /* fallback if grab cursor is unsupported */
         cursor: grab;
         cursor: -moz-grab;
         cursor: -webkit-grab;
       }
-      .card-handle:active {
+      .window-stack-handle:active {
         cursor: grabbing;
         cursor: -moz-grabbing;
         cursor: -webkit-grabbing;
@@ -99,7 +99,7 @@ server <- function(input, output, session) {
       window_body("test")
     )
     proxy <- windowstack_proxy("wind", session) |>
-      add_gs_window(wnd)
+      add_window(wnd)
   })
 }
 

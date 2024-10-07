@@ -32,7 +32,7 @@ window <- function(
 
   tag <- htmltools::tags$div(
     id = id,
-    class = "card windowstack-window",
+    class = "card windowstack-window grid-stack-item-content",
     class = if (is_shiny_input) "windowstack-window-input",
     style = style,
     "data-full-screen" = if (full_screen) "false",
@@ -42,6 +42,7 @@ window <- function(
 
   tag <- htmltools::bindFillRole(tag, container = TRUE, item = fill)
   tag <- htmltools::tagAppendAttributes(tag, class = class)
+  class(tag) <- c("windowstackr_window", class(tag))
   return(tag)
 }
 
@@ -124,11 +125,12 @@ window_toolbar <- function(
   tag <- as.window_item(container(
     id = id,
     class = "card-header windowstack-window-header",
-    class = if (grabbable) "windowstack-window-handle",
+    class = if (grabbable) "window-stack-handle",
     style = style,
     ...,
     close_button
   ))
+
   tag <- htmltools::tagAppendAttributes(tag, class = class)
   htmltools::attachDependencies(tag, fontawesome::fa_html_dependency(), append = TRUE)
   return(tag)
@@ -171,7 +173,7 @@ window_body <- function(
     !!!children
   )
 
-  tag <- htmltools::bindFillRole(tag, container = TRUE, item = fill)
+  tag <- htmltools::bindFillRole(tag, container = TRUE, item = TRUE)
   tag <- htmltools::tagAppendAttributes(tag, class = class)
   tag <- as.window_item(tag)
   return(tag)
@@ -191,7 +193,7 @@ window_footer <- function(
   id = NULL
 ) {
   if (is.null(id)) {
-    id = sprintf("windowstack-window-header-%s", uuid::UUIDgenerate(use.time = TRUE, output = "string"))
+    id = sprintf("windowstack-window-footer-%s", uuid::UUIDgenerate(use.time = TRUE, output = "string"))
   }
 
   tag <- as.window_item(container(

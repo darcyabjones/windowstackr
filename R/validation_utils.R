@@ -2,7 +2,7 @@ validate_it <- function(value, message, FUN, ...) {
   r <- tryCatch(
     FUN(value, ...),
     error = function(err) {
-      err
+      stop(err)
     }
   )
 
@@ -266,6 +266,27 @@ validate_less_than <- function(v, max_) {
   )
 }
 
+validate_integer_between <- function(v, min_, max_) {
+  r <- validate_is_integer(v)
+  if (!is.null(r)) {
+    return(r)
+  }
+  stopifnot(min_ < max_)
+  validate_it(
+    v,
+    c("x" = cli::format_inline("Value {v} is not between {min_} and {max_} (inclusive).")),
+    function(v) {(v >= min_) && (v <= max_)}
+  )
+}
+
+validate_inherits <- function(v, cls) {
+  validate_it(
+    v,
+    c("x" = cli::format_inline("Object isn't an instance of {.quote {cls}}.")),
+    function(x) {inherits(x, cls)}
+  )
+}
+
 validate_is_valid_css_unit <- function(v) {
   validate_it(v, "Value {value} is not a valid CSS unit.", is_valid_css_unit)
 }
@@ -358,7 +379,21 @@ validate_all_comma_split <- function(value, fn, ...) {
 }
 
 
-validate_option <- function(option, value, fns, ..., ignore_null = TRUE, parent = NULL, call = rlang::caller_env()) {
+validate_option <- function(
+  option,
+  value,
+  fns,
+  ...,
+  message = NULL,
+  ignore_null = TRUE,
+  parent = NULL,
+  raise = FALSE,
+  call = rlang::caller_env()
+) {
+
+  if (is.null(message)) {
+    message <- "Invalid gridstack option {.var {option}} provided."
+  }
   if (ignore_null && is.null(value)) {
     return(NULL)
   }
@@ -384,8 +419,50 @@ validate_option <- function(option, value, fns, ..., ignore_null = TRUE, parent 
   }))
 
   names(errors) <- rep("  ", length(errors))
-  return(c(
-    "!" = cli::format_inline("Invalid gridstack option {.var {option}} provided."),
+  errors <- c(
+    "!" = cli::format_inline(message),
     errors
-  ))
+  )
+
+  if (raise) {
+    cli::cli_abort(errors, call = call)
+  } else {
+    return(errors)
+  }
+}
+
+gs_validate_option <- purrr::partial(
+  validate_option,
+  message = "Invalid gridstack option {.var {option}} provided."
+)
+
+validate_argument <- purrr::partial(
+  validate_option,
+  message = "Invalid argument value {.var {option}} provided."
+)
+
+validate_arguments <- function(errors, ..., call = rlang::caller_env()) {
+  errors <- drop_nulls(errors)
+
+  if (length(errors) == 0) {
+    return(NULL)
+  }
+
+  errors <- unlist(lapply(errors, FUN = function(x) {
+    if (not_null(names(x)) && (names(x)[1] == "")) {
+      names(x)[1] <- "!"
+    }
+    cli::format_bullets_raw(x)
+  }))
+
+  names(errors) <- rep(" ", length(errors))
+
+  cli::cli_abort(
+    c(
+      "!" = cli::format_inline("Invalid argument values provided."),
+      errors
+    ),
+    call = call
+  )
+  return(NULL)
 }

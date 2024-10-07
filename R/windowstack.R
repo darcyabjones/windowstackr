@@ -80,48 +80,29 @@ windowstack <- function(
 #' @name windowstack-shiny
 #'
 #' @export
-windowstackOutput <- function(outputId, width = '100%', height = '400px'){
+windowstackOutput <- function(outputId, ..., width = '100%', height = '400px'){
   htmlwidgets::shinyWidgetOutput(outputId, 'windowstack', width, height, package = 'windowstackr')
 }
 
 #' @rdname windowstack-shiny
 #' @export
-renderWindowstack <- function(expr, env = parent.frame(), quoted = FALSE) {
+renderWindowstack <- function(expr, ..., env = parent.frame(), quoted = FALSE) {
   if (!quoted) { expr <- substitute(expr) } # force quoted
   htmlwidgets::shinyRenderWidget(expr, windowstackOutput, env, quoted = TRUE)
 }
 
 
 windowstack_proxy <- function(id, session = shiny::getDefaultReactiveDomain()){
+  validate_arguments(list(
+    validate_argument("id", id, validate_is_string),
+    validate_argument("session", session, \(v) {validate_inherits(v, "ShinySession")})
+  ))
   proxy <- list(id = id, session = session)
   class(proxy) <- "windowstack_proxy"
   return(proxy)
 }
 
-prepend_names <- function(options, prefix = "gs-", suffix = "") {
-  opt <- options
-  names(opt) <- paste0(prefix, names(opt), suffix)
-  return(opt)
-}
-
-gs_item <- function(..., style = NULL, class = NULL, id = NULL) {
-  if (is.null(id)) {
-    id = sprintf("windowstack-%s-container", uuid::UUIDgenerate(use.time = TRUE, output = "string"))
-  }
-
-  tag <- htmltools::div(
-    ...,
-    class = "grid-stack-item grid-stack-item-edit",
-    id = id
-  )
-
-  tag <- htmltools::bindFillRole(tag, container = TRUE, item = TRUE)
-  tag <- htmltools::tagAppendAttributes(tag, style = style, class = class)
-  class(tag) <- c("gs_item", class(tag))
-  return(tag)
-}
-
-add_gs_window <- function(
+add_window <- function(
   proxy,
   window,
   ...,
@@ -133,55 +114,181 @@ add_gs_window <- function(
     gs_options <- do.call(gridstack_item_options, gs_options)
   }
 
+  validate_arguments(list(
+    validate_argument(
+      "proxy",
+      proxy,
+      \(v) {validate_inherits(v, "windowstack_proxy")}
+    ),
+    validate_argument(
+      "window",
+      window,
+      \(v) {validate_all(v, list(
+        \(v1) {validate_inherits(v1, "shiny.tag")},
+        \(v2) {validate_inherits(v2, "windowstackr_window")}
+      ))}
+    )
+  ))
+
   window_id <- window$attrib$id
   stopifnot(!is.null(window_id))
+  window <- htmltools::tagAppendAttributes(window, class = "grid-stack-item-content")
 
   if (is.null(gs_options$id)) {
     tag_id <- paste0(window_id, "-container")
     gs_options$id <- tag_id
   }
 
-  tag <- gs_item(id = tag_id, style = style, class = class)
-  add_gs_element(proxy, tag, as.list(gs_options))
+  tag <- gs_item(window, id = tag_id, style = style, class = class, !!!as_html_attributes(gs_options))
 
-  window <- htmltools::tagAppendAttributes(window, class = "grid-stack-item-content")
-  shiny::insertUI(
-    paste0("#", tag_id),
-    ui = window,
-    where = "beforeEnd",
-    session = proxy$session
-  )
+  gs_make_element(proxy, tag, as.list(gs_options))
   return(proxy)
 }
 
-add_gs_element <- function(
+gs_item <- function(..., style = NULL, class = NULL, id = NULL) {
+  if (is.null(id)) {
+    id = sprintf("windowstack-%s-container", uuid::UUIDgenerate(use.time = TRUE, output = "string"))
+  }
+  tag <- htmltools::div(
+    ...,
+    class = "grid-stack-item grid-stack-item-edit",
+    style = style,
+    id = id
+  )
+
+  tag <- htmltools::bindFillRole(tag, container = TRUE, item = TRUE)
+  tag <- htmltools::tagAppendAttributes(tag, class = class)
+  class(tag) <- c("gs_item", class(tag))
+  return(tag)
+}
+
+gs_add_element <- function(
     proxy,
     element,
+    ...,
     options = NULL,
     gs_options = gridstack_item_options()
 ) {
-  # Avoids missing dependencies
-  stopifnot(inherits(element, "gs_item"))
+  validate_arguments(list(
+    validate_argument(
+      "proxy",
+      proxy,
+      \(v) {validate_inherits(v, "windowstack_proxy")}
+    ),
+    validate_argument(
+      "element",
+      element,
+      \(v) {validate_all(v, list(
+        \(v1) {validate_inherits(v1, "shiny.tag")},
+        \(v2) {validate_inherits(v2, "gs_item")}
+      ))}
+    )
+  ))
   element_rendered <- htmltools::renderTags(element)
 
+  if ((!"id" %in% names(gs_options)) || is.null(gs_options[["id"]])) {
+    gs_options$id <- element$attrib$id
+  }
+
   message <- list(
-    id = proxy$id,
+    id = pound(proxy$id),
     element = element_rendered$html,
     options = as.list(gs_options)
   )
+
   proxy$session$sendCustomMessage("gridstack_add_element", message)
   proxy
 }
 
-make_gs_element <- function(proxy, element) {
+gs_make_element <- function(proxy, element, ...) {
+  validate_arguments(list(
+    validate_argument(
+      "proxy",
+      proxy,
+      \(v) {validate_inherits(v, "windowstack_proxy")}
+    ),
+    validate_argument(
+      "element",
+      element,
+      \(v) {validate_inherits(v, "shiny.tag")}
+    )
+  ))
   shiny::insertUI(
-    paste0("#", proxy$id),
-    ui = window,
+    pound(proxy$id),
+    ui = element,
     where = "beforeEnd",
     session = proxy$session,
     immediate = TRUE
   )
-  message <- list(id = proxy$id, element_id = element$attribs$id)
+  message <- list(id = pound(proxy$id), element_id = pound(element$attribs$id))
   proxy$session$sendCustomMessage("gridstack_make_element", message)
+  proxy
+}
+
+gs_set_column <- function(
+  proxy,
+  column,
+  layout = c('moveScale', 'list', 'compact', 'move', 'scale', 'none'),
+  ...
+) {
+  layout <- rlang::arg_match(layout)
+  validate_arguments(list(
+    validate_argument(
+      "proxy",
+      proxy,
+      \(v) {validate_inherits(v, "windowstack_proxy")}
+    ),
+    validate_argument("column", column, \(v) {validate_integer_between(v, 0, 12)})
+  ))
+  message <- list(id = pound(proxy$id), column = column, layout = layout)
+  proxy$session$sendCustomMessage("gridstack_set_column", message)
+  proxy
+}
+
+gs_set_float <- function(proxy, float, ...) {
+  validate_arguments(list(
+    validate_argument(
+      "proxy",
+      proxy,
+      \(v) {validate_inherits(v, "windowstack_proxy")}
+    ),
+    validate_argument("float", float, validate_is_bool)
+  ))
+  message <- list(id = pound(proxy$id), float = float)
+  proxy$session$sendCustomMessage("gridstack_set_float", message)
+  proxy
+}
+
+gs_set_float <- function(proxy, float, ...) {
+  validate_arguments(list(
+    validate_argument(
+      "proxy",
+      proxy,
+      \(v) {validate_inherits(v, "windowstack_proxy")}
+    ),
+    validate_argument("float", float, validate_is_bool)
+  ))
+
+  message <- list(id = pound(proxy$id), float = float)
+  proxy$session$sendCustomMessage("gridstack_set_float", message)
+  proxy
+}
+
+gs_set_margin <- function(proxy, margin, ...) {
+  validate_arguments(list(
+    validate_argument(
+      "proxy",
+      proxy,
+      \(v) {validate_inherits(v, "windowstack_proxy")}
+    ),
+    validate_argument(
+      "margin",
+      margin,
+      \(v) {validate_all_space_split(v, validate_is_valid_css_unit)}
+    )
+  ))
+
+  message <- list(id = pound(proxy$id), margin = margin)
+  proxy$session$sendCustomMessage("gridstack_set_margin", message)
   proxy
 }
