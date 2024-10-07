@@ -213,6 +213,7 @@ gs_make_element <- function(proxy, element, ...) {
       \(v) {validate_inherits(v, "shiny.tag")}
     )
   ))
+
   shiny::insertUI(
     pound(proxy$id),
     ui = element,
@@ -220,6 +221,7 @@ gs_make_element <- function(proxy, element, ...) {
     session = proxy$session,
     immediate = TRUE
   )
+
   message <- list(id = pound(proxy$id), element_id = pound(element$attribs$id))
   proxy$session$sendCustomMessage("gridstack_make_element", message)
   proxy
