@@ -6,3 +6,7 @@ dependencies:
    stylesheet:
     - "gridstack.min.css"
     - "gridstack-extra.min.css"
+ - name: windowstack-css
+   version: 0.0.0
+   src: "htmlwidgets/css"
+   stylesheet: "windowstack.css"

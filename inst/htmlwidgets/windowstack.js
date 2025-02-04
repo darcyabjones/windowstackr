@@ -15,20 +15,18 @@ HTMLWidgets.widget({
 
     return {
       getGrid: function() {
-        return grid
+        return grid;
       },
-
       getItemDefaults: function() {
-        return item_defaults
+        return item_defaults;
       },
-
       renderValue: function(x) {
         item_defaults = x.item_defaults;
 
         el.classList.add("grid-stack");
         el.classList.add("grid-stack-edit");
         el.id = x.id;
-        el.innerHTML = x.html;
+        el.innerHTML += x.html;
 
         if (x.head) {
           document.head.innerHTML += x.head;
@@ -62,7 +60,6 @@ HTMLWidgets.widget({
           });
         }
       },
-
       resize: function(width, height) {
         // TODO: code to re-render the widget with a new size
         // I think this is already handled by gridstacks own callbacks though.
@@ -79,13 +76,23 @@ function isNull(x) {
   return Object.is(x, undefined) || Object.is(x, null);
 }
 
+function stripPound(s) {
+  return s.trim().replace(/^#/g, "")
+}
+
+function poundify(s) {
+  return "#" + stripPound(s)
+}
+
 function getWidget(id = null) {
   if (!id) {
     element = document.querySelector(".grid-stack");
     id = element.id;
   }
 
-  let htmlWidgetsObj = HTMLWidgets.find("#" + id);
+  id = poundify(id);
+
+  let htmlWidgetsObj = HTMLWidgets.find(id);
   let widgetObj;
   if (typeof htmlWidgetsObj !== "undefined") {
     widgetObj = htmlWidgetsObj.getGrid();
@@ -98,7 +105,7 @@ function windowClose(id, selectors = null) {
     selectors = [".grid-stack-item", ".windowstack-window"];
   }
   let wdw = null;
-  let btn = document.querySelector(id);
+  let btn = document.querySelector(poundify(id));
   if (Array.isArray(selectors)) {
     for (sel of selectors) {
       wdw = btn.closest(sel);
@@ -163,7 +170,7 @@ function toggleWindowFullScreen(el) {
 
 function gridstackRemoveElement(x) {
   let grid = getWidget(x.id);
-  let el = document.querySelector("#" + x.element_id);
+  let el = document.querySelector(poundify(x.element_id));
   grid.removeWidget(el, removeDOM = true);
 }
 
@@ -192,7 +199,7 @@ function gridstackAddElements(x) {
   let options = null;
   for (obj of x.objects) {
     element = object.element;
-    options = opject.options;
+    options = object.options;
     if (isNull(options)) {
       options = grid.getItemDefaults();
     }
@@ -209,15 +216,18 @@ function gridstackAddElements(x) {
 }
 
 function gridstackMakeElement(x) {
+  console.log("HERE ");
+  console.log(x);
   let grid = getWidget(x.id);
-  grid.makeWidget("#" + x.element_id);
+  console.log(grid);
+  grid.makeWidget(poundify(x.element_id));
 }
 
 function gridstackMakeElements(x) {
   let grid = getWidget(x.id);
   grid.batchUpdate(false);
   for (id of x.element_ids) {
-    grid.makeWidget("#" + id);
+    grid.makeWidget(poundify(id));
   }
   grid.batchUpdate(true);
 }
@@ -240,7 +250,7 @@ function gridstackSetFloat(x) {
 
 function gridstackSetMargin(x) {
   let grid = getWidget(x.id);
-  grid.margin(x.value);
+  grid.margin(x.margin);
 }
 
 //https://github.com/gridstack/gridstack.js/tree/master/doc#compactlayout-compactoptions--compact-dosort--true
@@ -268,21 +278,21 @@ function gridstackSetStatic(x) {
 
 function gridstackUpdateElement(x) {
   let grid = getWidget(x.id);
-  let el = document.querySelector(x.element_id);
+  let el = document.querySelector(poundify(x.element_id));
   grid.update(el, x.options);
 }
 
 //https://github.com/gridstack/gridstack.js/tree/master/doc#movableel-val
 function gridstackSetElementMovable(x) {
   let grid = getWidget(x.id);
-  let el = document.querySelector(x.element_id);
+  let el = document.querySelector(poundify(x.element_id));
   grid.movable(el, x.val);
 }
 
 //https://github.com/gridstack/gridstack.js/tree/master/doc#resizableel-val
 function gridstackSetElementResizable(x) {
   let grid = getWidget(x.id);
-  let el = document.querySelector(x.element_id);
+  let el = document.querySelector(poundify(x.element_id));
   grid.resizable(el, x.val);
 }
 
@@ -291,5 +301,8 @@ if (HTMLWidgets.shinyMode) {
   Shiny.addCustomMessageHandler("gridstack_make_element", gridstackMakeElement);
   Shiny.addCustomMessageHandler("gridstack_make_elements", gridstackMakeElements);
   Shiny.addCustomMessageHandler("gridstack_add_element", gridstackAddElement);
-  Shiny.addCustomMessageHandler("gridstack_add_elements", gridstackAddElement);
+  Shiny.addCustomMessageHandler("gridstack_add_elements", gridstackAddElements);
+  Shiny.addCustomMessageHandler("gridstack_set_column", gridstackSetColumn);
+  Shiny.addCustomMessageHandler("gridstack_set_float", gridstackSetFloat);
+  Shiny.addCustomMessageHandler("gridstack_set_margin", gridstackSetMargin);
 }
