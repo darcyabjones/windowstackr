@@ -15,20 +15,18 @@ HTMLWidgets.widget({
 
     return {
       getGrid: function() {
-        return grid
+        return grid;
       },
-
       getItemDefaults: function() {
-        return item_defaults
+        return item_defaults;
       },
-
       renderValue: function(x) {
         item_defaults = x.item_defaults;
 
         el.classList.add("grid-stack");
         el.classList.add("grid-stack-edit");
         el.id = x.id;
-        el.innerHTML = x.html;
+        el.innerHTML += x.html;
 
         if (x.head) {
           document.head.innerHTML += x.head;
@@ -62,7 +60,6 @@ HTMLWidgets.widget({
           });
         }
       },
-
       resize: function(width, height) {
         // TODO: code to re-render the widget with a new size
         // I think this is already handled by gridstacks own callbacks though.
@@ -82,10 +79,10 @@ function isNull(x) {
 function getWidget(id = null) {
   if (!id) {
     element = document.querySelector(".grid-stack");
-    id = element.id;
+    id = "#" + element.id;
   }
 
-  let htmlWidgetsObj = HTMLWidgets.find("#" + id);
+  let htmlWidgetsObj = HTMLWidgets.find(id);
   let widgetObj;
   if (typeof htmlWidgetsObj !== "undefined") {
     widgetObj = htmlWidgetsObj.getGrid();
@@ -109,7 +106,7 @@ function windowClose(id, selectors = null) {
   }
   let grid_element = document.querySelector(id).closest(".grid-stack");
   if (!(isNull(wdw) || isNull(grid_element))) {
-    gridstackRemoveElement({id: grid_element.id, element_id: wdw.id});
+    gridstackRemoveElement({id: "#" + grid_element.id, element_id: "#" + wdw.id});
   } else {
     console.log("Tried to remove window from close button " + id + "but couldn't find something.")
     console.log(wdw);
@@ -192,7 +189,7 @@ function gridstackAddElements(x) {
   let options = null;
   for (obj of x.objects) {
     element = object.element;
-    options = opject.options;
+    options = object.options;
     if (isNull(options)) {
       options = grid.getItemDefaults();
     }
@@ -210,14 +207,14 @@ function gridstackAddElements(x) {
 
 function gridstackMakeElement(x) {
   let grid = getWidget(x.id);
-  grid.makeWidget("#" + x.element_id);
+  grid.makeWidget(x.element_id);
 }
 
 function gridstackMakeElements(x) {
   let grid = getWidget(x.id);
   grid.batchUpdate(false);
   for (id of x.element_ids) {
-    grid.makeWidget("#" + id);
+    grid.makeWidget(id);
   }
   grid.batchUpdate(true);
 }
@@ -240,7 +237,7 @@ function gridstackSetFloat(x) {
 
 function gridstackSetMargin(x) {
   let grid = getWidget(x.id);
-  grid.margin(x.value);
+  grid.margin(x.margin);
 }
 
 //https://github.com/gridstack/gridstack.js/tree/master/doc#compactlayout-compactoptions--compact-dosort--true
@@ -291,5 +288,8 @@ if (HTMLWidgets.shinyMode) {
   Shiny.addCustomMessageHandler("gridstack_make_element", gridstackMakeElement);
   Shiny.addCustomMessageHandler("gridstack_make_elements", gridstackMakeElements);
   Shiny.addCustomMessageHandler("gridstack_add_element", gridstackAddElement);
-  Shiny.addCustomMessageHandler("gridstack_add_elements", gridstackAddElement);
+  Shiny.addCustomMessageHandler("gridstack_add_elements", gridstackAddElements);
+  Shiny.addCustomMessageHandler("gridstack_set_column", gridstackSetColumn);
+  Shiny.addCustomMessageHandler("gridstack_set_float", gridstackSetFloat);
+  Shiny.addCustomMessageHandler("gridstack_set_margin", gridstackSetMargin);
 }

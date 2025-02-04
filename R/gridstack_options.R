@@ -13,6 +13,7 @@ new_gridstack_options <- function(
     disableDrag = NULL,
     disableResize = NULL,
     draggable = NULL,
+    handle = NULL,
     handleClass = NULL,
     resizable = NULL,
     alwaysShowResizeHandle = NULL,
@@ -45,6 +46,7 @@ new_gridstack_options <- function(
       disableDrag = disableDrag,
       disableResize = disableResize,
       draggable = draggable,
+      handle = handle,
       handleClass = handleClass,
       resizable = resizable,
       alwaysShowResizeHandle = alwaysShowResizeHandle,
@@ -69,21 +71,22 @@ new_gridstack_options <- function(
 gridstack_options <- function(
   ...,
   animate = TRUE,
-  auto = TRUE,
+  auto = NULL,
   float = NULL,
   cellHeight = 'initial',
-  cellHeightThrottle = 100,
+  cellHeightThrottle = NULL,
   cellHeightUnit = 'px',
   column = 6,
   draggable = gridstack_draggable_options(),
-  handleClass = NULL,
+  handle = ".window-stack-handle",
+  handleClass = "window-stack-handle",
   itemClass = 'grid-stack-item',
   margin = "5px 5px 5px 5px",
   marginUnit = 'px',
   row = NULL,
   maxRow = 0,
   minRow = 2,
-  placeholderClass = 'window-stack-placeholder',
+  placeholderClass = 'grid-stack-placeholder',
   placeholderText = '',
   removable = NULL,
   removableOptions = gridstack_removable_options(),
@@ -92,7 +95,7 @@ gridstack_options <- function(
   disableResize = FALSE,
   disableDrag = FALSE,
   rtl = TRUE,
-  sizeToContent = NULL,
+  sizeToContent = FALSE,
   staticGrid = NULL,
   styleInHead = NULL,
   subGridOpts = NULL
@@ -136,6 +139,7 @@ gridstack_options <- function(
     disableDrag = disableDrag,
     disableResize = disableResize,
     draggable = draggable,
+    handle = handle,
     handleClass = handleClass,
     resizable = resizable,
     alwaysShowResizeHandle = alwaysShowResizeHandle,
@@ -159,9 +163,9 @@ gridstack_options <- function(
 
 validate_gridstack_options <- function(opt, call = NULL) {
   errors <- list(
-    validate_option("animate", opt[["animate"]], validate_is_bool),
-    validate_option("auto", opt[["auto"]], validate_is_bool),
-    validate_option(
+    gs_validate_option("animate", opt[["animate"]], validate_is_bool),
+    gs_validate_option("auto", opt[["auto"]], validate_is_bool),
+    gs_validate_option(
       "cellHeight",
       opt[["cellHeight"]],
       \(v) {validate_any(v, list(
@@ -169,24 +173,25 @@ validate_gridstack_options <- function(opt, call = NULL) {
         \(v2) {validate_is_in(v2, c("auto", "initial"))}
       ))}
     ),
-    validate_option("cellHeightThrottle", opt[["cellHeightThrottle"]], validate_is_integer),
-    validate_option("cellHeightUnit", opt[["cellHeightUnit"]], validate_is_valid_css_unit_type),
-    validate_option(
+    gs_validate_option("cellHeightThrottle", opt[["cellHeightThrottle"]], validate_is_integer),
+    gs_validate_option("cellHeightUnit", opt[["cellHeightUnit"]], validate_is_valid_css_unit_type),
+    gs_validate_option(
       "column",
       opt[["column"]],
       \(v) {validate_any(v, list(
-        \(v2) {validate_integer_less_than(v2, 12)},
+        \(v2) {validate_integer_between(v2, 0, 12)},
         \(v3) {validate_is_string_literal(v3, "auto")}
       ))}
     ),
-    validate_option("row", opt[["row"]], validate_is_integer),
-    validate_option("maxRow", opt[["maxRow"]], validate_is_integer),
-    validate_option("minRow", opt[["minRow"]], validate_is_integer),
-    validate_option("float", opt[["float"]], validate_is_bool),
-    validate_option("disableDrag", opt[["disableDrag"]], validate_is_bool),
-    validate_option("disableresize", opt[["disableresize"]], validate_is_bool),
-    validate_option("handleClass", opt[["handleClass"]], validate_is_string),
-    validate_option(
+    gs_validate_option("row", opt[["row"]], validate_is_integer),
+    gs_validate_option("maxRow", opt[["maxRow"]], validate_is_integer),
+    gs_validate_option("minRow", opt[["minRow"]], validate_is_integer),
+    gs_validate_option("float", opt[["float"]], validate_is_bool),
+    gs_validate_option("disableDrag", opt[["disableDrag"]], validate_is_bool),
+    gs_validate_option("disableresize", opt[["disableresize"]], validate_is_bool),
+    gs_validate_option("handle", opt[["handle"]], validate_is_string),
+    gs_validate_option("handleClass", opt[["handleClass"]], validate_is_string),
+    gs_validate_option(
       "alwaysShowResizeHandle",
       opt[["alwaysShowResizeHandle"]],
       \(v) {validate_any(v, list(
@@ -194,13 +199,13 @@ validate_gridstack_options <- function(opt, call = NULL) {
         \(v3) {validate_is_string_literal(v3, "mobile")}
       ))}
     ),
-    validate_option(
+    gs_validate_option(
       "margin",
       opt[["margin"]],
       \(v) {validate_all_space_split(v, validate_is_valid_css_unit)}
     ),
-    validate_option("marginUnit", opt[["marginUnit"]], validate_is_valid_css_unit_type),
-    validate_option(
+    gs_validate_option("marginUnit", opt[["marginUnit"]], validate_is_valid_css_unit_type),
+    gs_validate_option(
       "removable",
       opt[["removable"]],
       \(v) {validate_any(v, list(
@@ -208,10 +213,10 @@ validate_gridstack_options <- function(opt, call = NULL) {
         validate_is_string
       ))}
     ),
-    validate_option("itemClass", opt[["itemClass"]], validate_is_string),
-    validate_option("placeholderClass", opt[["placeholderClass"]], validate_is_string),
-    validate_option("placeholderText", opt[["placeholderText"]], validate_is_string),
-    validate_option(
+    gs_validate_option("itemClass", opt[["itemClass"]], validate_is_string),
+    gs_validate_option("placeholderClass", opt[["placeholderClass"]], validate_is_string),
+    gs_validate_option("placeholderText", opt[["placeholderText"]], validate_is_string),
+    gs_validate_option(
       "rtl",
       opt[["rtl"]],
       \(v) {validate_any(v, list(
@@ -219,9 +224,9 @@ validate_gridstack_options <- function(opt, call = NULL) {
         \(v2) {validate_is_string_literal(v2, "auto")}
       ))}
     ),
-    validate_option("sizeToContent", opt[["sizeToContent"]], validate_is_bool),
-    validate_option("staticGrid", opt[["staticGrid"]], validate_is_bool),
-    validate_option("styleInHead", opt[["styleInHead"]], validate_is_bool)
+    gs_validate_option("sizeToContent", opt[["sizeToContent"]], validate_is_bool),
+    gs_validate_option("staticGrid", opt[["staticGrid"]], validate_is_bool),
+    gs_validate_option("styleInHead", opt[["styleInHead"]], validate_is_bool)
   )
 
   errors <- drop_nulls(errors)
@@ -250,16 +255,12 @@ validate_gridstack_options <- function(opt, call = NULL) {
 }
 
 as.list.gridstack_options <- function(opt) {
-  drop_nulls(opt) |>
-    drop_empty_sublists("removableOptions") |>
-    drop_empty_sublists("draggable") |>
-    drop_empty_sublists("resizable") |>
-    drop_empty_sublists("subGridOpts")
+  drop_nulls(opt)
 }
 
 gridstack_draggable_options <- function(
-  handle = '.windowstack-window-handle',
-  appendTo = "body",
+  handle = '.window-stack-handle',
+  appendTo = NULL,
   pause = NULL,
   scroll = TRUE,
   cancel = NULL,
@@ -284,9 +285,9 @@ validate_gridstack_draggable_options <- function(opt, call = NULL) {
   if (is.null(opt)) {return(NULL)}
 
   errors <- list(
-    validate_option("handle", opt[["handle"]], validate_is_string),
-    validate_option("appendTo", opt[["appendTo"]], validate_is_string),
-    validate_option(
+    gs_validate_option("handle", opt[["handle"]], validate_is_string),
+    gs_validate_option("appendTo", opt[["appendTo"]], validate_is_string),
+    gs_validate_option(
       "pause",
       opt[["pause"]],
       \(v) {validate_any(v, list(
@@ -294,8 +295,8 @@ validate_gridstack_draggable_options <- function(opt, call = NULL) {
         validate_is_integer
       ))}
     ),
-    validate_option("scroll", opt[["scroll"]], validate_is_bool),
-    validate_option("cancel", opt[["cancel"]], validate_is_bool)
+    gs_validate_option("scroll", opt[["scroll"]], validate_is_bool),
+    gs_validate_option("cancel", opt[["cancel"]], validate_is_bool)
   )
   errors <- drop_nulls(errors)
 
@@ -342,8 +343,8 @@ GRIDSTACK_RESIZE_HANDLE_OPTIONS <- c("n", "ne", "e", "se", "s", "sw", "w", "nw",
 validate_gridstack_resizable_options <- function(opt, call = NULL) {
   if (is.null(opt)) {return(TRUE)}
   errors <- list(
-    validate_option("autoHide", opt[["autoHide"]], validate_is_bool),
-    validate_option(
+    gs_validate_option("autoHide", opt[["autoHide"]], validate_is_bool),
+    gs_validate_option(
       "handles",
       opt[["handles"]],
       \(v) {validate_all_comma_split(v, \(v2) {validate_is_in(v2, GRIDSTACK_RESIZE_HANDLE_OPTIONS)})}
@@ -393,8 +394,8 @@ gridstack_removable_options <- function(
 validate_gridstack_removable_options <- function(opt, call = NULL) {
   if (is.null(opt)) {return(TRUE)}
   errors <- list(
-    validate_option("accept", opt[["accept"]], validate_is_string),
-    validate_option("decline", opt[["decline"]], validate_is_string)
+    gs_validate_option("accept", opt[["accept"]], validate_is_string),
+    gs_validate_option("decline", opt[["decline"]], validate_is_string)
   )
   errors <- drop_nulls(errors)
 

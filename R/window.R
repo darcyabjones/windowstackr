@@ -32,7 +32,7 @@ window <- function(
 
   tag <- htmltools::tags$div(
     id = id,
-    class = "card windowstack-window",
+    class = "card windowstack-window grid-stack-item-content",
     class = if (is_shiny_input) "windowstack-window-input",
     style = style,
     "data-full-screen" = if (full_screen) "false",
@@ -42,6 +42,7 @@ window <- function(
 
   tag <- htmltools::bindFillRole(tag, container = TRUE, item = fill)
   tag <- htmltools::tagAppendAttributes(tag, class = class)
+  class(tag) <- c("windowstackr_window", class(tag))
   return(tag)
 }
 
@@ -67,28 +68,29 @@ window_settings <- function(id, settings = NULL, placement = "auto") {
   return(po)
 }
 
-window_close_button <- function(id) {
+window_close_button <- function(id, `aria-controls` = NULL) {
   htmltools::tags$a(
     id = id,
     class = "card-header-button",
     type = "button",
     onClick = sprintf("windowClose('#%s')", id),
     `aria-label` = "Close",
+    `aria-controls` = `aria-controls`,
     shiny::icon("xmark", class = "fa-solid", lib = "font-awesome")
   )
 }
 
-window_fullscreen_button <- function(id) { #, id_controls) {
+window_fullscreen_button <- function(id, `aria-controls` = NULL) {
   #<i class="fa-solid fa-up-right-and-down-left-from-center"></i>
   #<i class="fa-solid fa-down-left-and-up-right-to-center"></i>
 
-  #"aria-controls" = id_controls,
   htmltools::tags$a(
     id = id,
     class = "card-header-button",
     type = "button",
     "aria-label" = "Full screen",
     "aria-expanded" = "false",
+    "aria-controls" = `aria-controls`,
     shiny::icon("up-right-and-down-left-from-center", class = "fa-solid", lib = "font-awesome"),
     onClick = sprintf("windowFullScreen('#%s')", id)
   )
@@ -104,6 +106,7 @@ window_toolbar <- function(
   ...,
   container = htmltools::div,
   grabbable = TRUE,
+  fullscreen = TRUE,
   closable = TRUE,
   full_screen = FALSE,
   class = NULL,
@@ -114,11 +117,21 @@ window_toolbar <- function(
     id = sprintf("windowstack-window-header-%s", uuid::UUIDgenerate(use.time = TRUE, output = "string"))
   }
 
-  if (is.logical(closable) & closable) {
+  if (is.logical(fullscreen) && fullscreen) {
+    fullscreen_button <- window_fullscreen_button(paste0(id, "-fullscreenbutton"))
+  } else if (inherits(fullscreen, "shiny.tag")) {
+    fullscreen_button <- fullscreen
+  } else if (is.null(fullscreen) || (is.logical(fullscreen) && !fullscreen)) {
+    fullscreen_button <- NULL
+  } else {
+    stop("????")
+  }
+
+  if (is.logical(closable) && closable) {
     close_button <- window_close_button(paste0(id, "-closebutton"))
   } else if (is(closable, "shiny.tag")) {
     close_button <- closable
-  } else if (is.null(closable) | (is.logical(closable) & !closable)) {
+  } else if (is.null(closable) || (is.logical(closable) && !closable)) {
     close_button <- NULL
   } else {
     stop("????")
@@ -137,12 +150,13 @@ window_toolbar <- function(
   tag <- as.window_item(container(
     id = id,
     class = "card-header windowstack-window-header",
-    class = if (grabbable) "windowstack-window-handle",
+    class = if (grabbable) "window-stack-handle",
     style = style,
     ...,
     close_button,
     fullscreen_button
   ))
+
   tag <- htmltools::tagAppendAttributes(tag, class = class)
   htmltools::attachDependencies(tag, fontawesome::fa_html_dependency(), append = TRUE)
   return(tag)
@@ -185,7 +199,7 @@ window_body <- function(
     !!!children
   )
 
-  tag <- htmltools::bindFillRole(tag, container = TRUE, item = fill)
+  tag <- htmltools::bindFillRole(tag, container = TRUE, item = TRUE)
   tag <- htmltools::tagAppendAttributes(tag, class = class)
   tag <- as.window_item(tag)
   return(tag)
@@ -205,7 +219,7 @@ window_footer <- function(
   id = NULL
 ) {
   if (is.null(id)) {
-    id = sprintf("windowstack-window-header-%s", uuid::UUIDgenerate(use.time = TRUE, output = "string"))
+    id = sprintf("windowstack-window-footer-%s", uuid::UUIDgenerate(use.time = TRUE, output = "string"))
   }
 
   tag <- as.window_item(container(
