@@ -90,14 +90,22 @@ ui <- bslib::page_fluid(
 
 server <- function(input, output, session) {
   bslib::bs_theme()
+  wnd <- window(
+      window_toolbar(),
+      window_body("test"),
+      id = "hi",
+      full_screen = TRUE
+    )
   output$wind <- renderWindowstack(windowstack(
+    wnd,
     id = "wind"
   ))
   shiny::observeEvent(input[["create_window"]], {
     wnd <- window(
-      window_toolbar(),
+      window_toolbar(full_screen = TRUE),
       window_body("test")
     )
+
     proxy <- windowstack_proxy("wind", session) |>
       add_gs_window(wnd)
   })

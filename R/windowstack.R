@@ -21,9 +21,20 @@ windowstack <- function(
   options <- args[nzchar(argnames)]
 
   children <- args[!nzchar(argnames)]
-  children <- htmltools::renderTags(children)
+  children <- lapply(children, function(child) {
+    if (!is.null(child$attrib$id)) {
+      container_id <- paste0(child$id, "-container")
+    } else {
+      stop("All windows must have an id set.")
+    }
+    if (!inherits(child, "gs_item")) {
+      child <- htmltools::tagAppendAttributes(child, class = "grid-stack-item-content")
+      child <- gs_item(child, id = container_id)
+    }
+    child
+  })
 
-  is_shiny_input <- !is.null(id)
+  children <- htmltools::renderTags(children)
 
   if (!inherits(gs_options, "gridstack_options") && not_null(gs_options)) {
     gs_options <- do.call(gridstack_options, gs_options)
@@ -35,9 +46,9 @@ windowstack <- function(
 
   # forward options using x
   x = list(
+    id = id,
     html = children$html,
     head = children$head,
-    id = id,
     options = as.list(gs_options),
     item_defaults = as.list(gs_item_options)
   )

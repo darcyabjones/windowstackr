@@ -20,7 +20,7 @@ HTMLWidgets.widget({
 
       getItemDefaults: function() {
         return item_defaults
-      }
+      },
 
       renderValue: function(x) {
         item_defaults = x.item_defaults;
@@ -76,7 +76,7 @@ function generateID() {
 }
 
 function isNull(x) {
-  return Object.id(x, undefined) || Object.id(x, null);
+  return Object.is(x, undefined) || Object.is(x, null);
 }
 
 function getWidget(id = null) {
@@ -117,9 +117,53 @@ function windowClose(id, selectors = null) {
   }
 }
 
+
+function windowFullScreen(id, selectors = null) {
+  if (!selectors) {
+    selectors = [".grid-stack-item", ".windowstack-window"];
+  }
+
+  let wdw = null;
+  let btn = document.querySelector(id);
+  if (Array.isArray(selectors)) {
+    for (sel of selectors) {
+      wdw = btn.closest(sel);
+      if (wdw) {break}
+    }
+  } else {
+    wdw = btn.closest(selectors);
+  }
+
+  let fs_element = document.querySelector(id).closest(".windowstack-window");
+
+  toggleWindowFullScreen(btn);
+}
+
+function toggleWindowFullScreen(el) {
+  let icns = el.getElementsByTagName('i');
+  var from;
+  var to;
+
+  let ae = el.getAttribute('aria-expanded');
+  if (ae == "true") {
+    el.setAttribute("aria-expanded",  false);
+    from = "fa-down-left-and-up-right-to-center";
+    to = "fa-up-right-and-down-left-from-center";
+  } else {
+    el.setAttribute("aria-expanded",  true);
+    from = "fa-up-right-and-down-left-from-center";
+    to = "fa-down-left-and-up-right-to-center";
+  }
+
+  for (icn of icns) {
+    icn.classList.replace(from, to);
+    icn.setAttribute("aria-label", to + " icon");
+  }
+}
+
 function gridstackRemoveElement(x) {
   let grid = getWidget(x.id);
-  let el = document.querySelector(x.element_id);
+  let el = document.querySelector("#" + x.element_id);
   grid.removeWidget(el, removeDOM = true);
 }
 

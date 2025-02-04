@@ -78,17 +78,19 @@ window_close_button <- function(id) {
   )
 }
 
-window_fullscreen_button <- function(id, id_controls) {
+window_fullscreen_button <- function(id) { #, id_controls) {
   #<i class="fa-solid fa-up-right-and-down-left-from-center"></i>
   #<i class="fa-solid fa-down-left-and-up-right-to-center"></i>
-  htmltools::tag$a(
-    inputId = id,
+
+  #"aria-controls" = id_controls,
+  htmltools::tags$a(
+    id = id,
     class = "card-header-button",
-    type="button",
-    `aria-label` = "Full screen",
+    type = "button",
+    "aria-label" = "Full screen",
     "aria-expanded" = "false",
-    "aria-controls" = id_controls,
-    shiny::icon("up-right-and-down-left-from-center", class = "fa-solid", lib = "font-awesome")
+    shiny::icon("up-right-and-down-left-from-center", class = "fa-solid", lib = "font-awesome"),
+    onClick = sprintf("windowFullScreen('#%s')", id)
   )
 }
 
@@ -103,6 +105,7 @@ window_toolbar <- function(
   container = htmltools::div,
   grabbable = TRUE,
   closable = TRUE,
+  full_screen = FALSE,
   class = NULL,
   style = NULL,
   id = NULL
@@ -121,13 +124,24 @@ window_toolbar <- function(
     stop("????")
   }
 
+  if (is.logical(full_screen) & full_screen) {
+    fullscreen_button <- window_fullscreen_button(paste0(id, "-fullscreenbutton"))
+  } else if (is(full_screen, "shiny.tag")) {
+    fullscreen_button <- full_screen
+  } else if (is.null(full_screen) | (is.logical(full_screen) & !full_screen)) {
+    fullscreen_button <- NULL
+  } else {
+    stop("????")
+  }
+
   tag <- as.window_item(container(
     id = id,
     class = "card-header windowstack-window-header",
     class = if (grabbable) "windowstack-window-handle",
     style = style,
     ...,
-    close_button
+    close_button,
+    fullscreen_button
   ))
   tag <- htmltools::tagAppendAttributes(tag, class = class)
   htmltools::attachDependencies(tag, fontawesome::fa_html_dependency(), append = TRUE)
